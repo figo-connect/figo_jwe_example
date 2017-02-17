@@ -1,0 +1,60 @@
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Encryption example</title>
+    <script src="lib/bower_components/jquery/dist/jquery.min.js"></script>
+    <script src="lib/bower_components/js-jose/dist/jose.js"></script>
+    <script src="lib/bower_components/kjur-jsrsasign/ext/yahoo-min.js"></script>
+    <script src="lib/bower_components/kjur-jsrsasign//ext/jsbn.js"></script>
+    <script src="lib/bower_components/kjur-jsrsasign//ext/jsbn2.js"></script>
+    <script src="lib/bower_components/kjur-jsrsasign//ext/prng4.js"></script>
+    <script src="lib/bower_components/kjur-jsrsasign//ext/rng.js"></script>
+    <script src="lib/bower_components/kjur-jsrsasign//ext/base64.js"></script>
+    <script src="lib/bower_components/kjur-jsrsasign//ext/rsa.js"></script>
+    <script src="lib/bower_components/kjur-jsrsasign//ext/rsa2.js"></script>
+    <script src="lib/bower_components/kjur-jsrsasign//ext/ec.js"></script>
+    <script src="lib/bower_components/kjur-jsrsasign//ext/ec-patch.js"></script>
+    <script src="lib/bower_components/webcrypto-shim/webcrypto-shim.js"></script>
+    <script src="lib/bower_components/kjur-jsrsasign/min/asn1hex-1.1.min.js"></script>
+    <script src="lib/bower_components/kjur-jsrsasign/min/base64x-1.1.min.js"></script>
+    <script src="lib/bower_components/kjur-jsrsasign/min/ecdsa-modified-1.0.min.js"></script>
+    <script src="lib/bower_components/kjur-jsrsasign/min/keyutil-1.0.min.js"></script>
+  </head>
+  <body>
+    <script>
+      function encrypt() {
+        // use jsrsasign to read the public key and convert it to jwk
+        var keyObj = KEYUTIL.getKey("-----BEGIN PUBLIC KEY-----MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA1qB2hmObbCbAM+lc+ggDauoIZReejEimnvrmeqEs0opeTeZiiietoHT1FkB8HjlgCWrh6UimxrRvBwwvNn/4uiVEqxuPb37ozWRj87bp1R3iwhzIGHBMgkibfFf9v3FxEjtY6CgCvOJ/12+AiotL+4jBCwsUWcqui3phq4/C19bQTWaN8u1Q1ABB0SSExcfqH3Ahg6i4pJfDwY+/khb4rgvmqPpb7a0tHiWuWqAMUxfEO/GJVaDV+Bq4k5vfUNirIcazUtmnLhBVSTBcjw7OEDEIHGckwUHs6prKE0kkQD4Xjm06XupuZW8/H+/oPBdHJBr+Ugv5Kzlsst/81BEyoQIDAQAB-----END PUBLIC KEY-----")
+        var jwk = KEYUTIL.getJWKFromKey(keyObj);
+
+        // init jose-js and pass the jwk to encrypt given credentials
+        var cryptographer = new Jose.WebCryptographer();
+        var rsa_key = Jose.Utils.importRsaPublicKey(jwk, "RSA-OAEP");
+        cryptographer.setContentEncryptionAlgorithm("A256CBC-HS512");
+        var encrypter = new JoseJWE.Encrypter(cryptographer, rsa_key);
+        var creds = JSON.stringify([$('#user').val(),$('#additional_pin').val(),$('#pin').val()]);
+        $('#to_be_encrypted').html(creds);
+        encrypter.encrypt(creds).then(function(result) {
+          document.getElementById("encrypted_token").innerHTML = result;
+        }).catch(function(err){
+          console.error(err);
+        });
+      }
+    </script>
+    <div>
+      Please enter credentials: <br/><br/>
+      <form>
+        <div>Username: &nbsp;<input type="text" id="user"></input></div><br/>
+        <div>PIN: &nbsp;<input type="pin" id="pin"></input></div><br />
+        <div>Additional PIN (optional): &nbsp;<input type="text" id="additional_pin"></input></div><br/>
+        <button type="button" onclick="encrypt(); return false;">convert</button>
+      </form>
+      <div>
+    <div>
+      To be encrypted:<br/><br/> <span id="to_be_encrypted"></span>
+    </div><br />
+    <div>
+      JWE:<br/><br/> <span id="encrypted_token"></span>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,15 @@
+{
+  "name": "js-jose",
+  "homepage": "https://github.com/square/js-jose",
+  "version": "0.1.4",
+  "_release": "0.1.4",
+  "_resolution": {
+    "type": "version",
+    "tag": "v0.1.4",
+    "commit": "34f9cccdc1864ad4b21b8c68a3d48fc887bc1d64"
+  },
+  "_source": "https://github.com/square/js-jose.git",
+  "_target": "^0.1.4",
+  "_originalSource": "js-jose",
+  "_direct": true
+}

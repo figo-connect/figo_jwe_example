@@ -1,0 +1,21 @@
+{
+  "name": "lib",
+  "authors": [
+    "figo <dev@figo.io>"
+  ],
+  "description": "figo",
+  "main": "",
+  "license": "MIT",
+  "homepage": "",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "js-jose": "^0.1.4"
+  }
+}
