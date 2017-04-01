@@ -44,6 +44,10 @@ opensource free pure JavaScript cryptographic library
 
 Changelog and New Features
 --------------------------
+### 0.2
+
+- revised UI
+- added TAN encryption demo
 
 ### 0.1
 

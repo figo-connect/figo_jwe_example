@@ -1,6 +1,10 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
   <head>
     <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
     <title>Encryption example</title>
     <script src="lib/bower_components/jquery/dist/jquery.min.js"></script>
     <script src="lib/bower_components/js-jose/dist/jose.js"></script>
@@ -19,42 +23,234 @@
     <script src="lib/bower_components/kjur-jsrsasign/min/base64x-1.1.min.js"></script>
     <script src="lib/bower_components/kjur-jsrsasign/min/ecdsa-modified-1.0.min.js"></script>
     <script src="lib/bower_components/kjur-jsrsasign/min/keyutil-1.0.min.js"></script>
+
+    <!-- Bootstrap -->
+    <link href="lib/bower_components/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
   </head>
   <body>
-    <script>
-      function encrypt() {
-        // use jsrsasign to read the public key and convert it to jwk
-        var keyObj = KEYUTIL.getKey("-----BEGIN PUBLIC KEY-----MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA1qB2hmObbCbAM+lc+ggDauoIZReejEimnvrmeqEs0opeTeZiiietoHT1FkB8HjlgCWrh6UimxrRvBwwvNn/4uiVEqxuPb37ozWRj87bp1R3iwhzIGHBMgkibfFf9v3FxEjtY6CgCvOJ/12+AiotL+4jBCwsUWcqui3phq4/C19bQTWaN8u1Q1ABB0SSExcfqH3Ahg6i4pJfDwY+/khb4rgvmqPpb7a0tHiWuWqAMUxfEO/GJVaDV+Bq4k5vfUNirIcazUtmnLhBVSTBcjw7OEDEIHGckwUHs6prKE0kkQD4Xjm06XupuZW8/H+/oPBdHJBr+Ugv5Kzlsst/81BEyoQIDAQAB-----END PUBLIC KEY-----")
-        var jwk = KEYUTIL.getJWKFromKey(keyObj);
+      <script>
+        function loadPresets() {
+          $('#public_key').val("-----BEGIN PUBLIC KEY-----MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA1qB2hmObbCbAM+lc+ggDauoIZReejEimnvrmeqEs0opeTeZiiietoHT1FkB8HjlgCWrh6UimxrRvBwwvNn/4uiVEqxuPb37ozWRj87bp1R3iwhzIGHBMgkibfFf9v3FxEjtY6CgCvOJ/12+AiotL+4jBCwsUWcqui3phq4/C19bQTWaN8u1Q1ABB0SSExcfqH3Ahg6i4pJfDwY+/khb4rgvmqPpb7a0tHiWuWqAMUxfEO/GJVaDV+Bq4k5vfUNirIcazUtmnLhBVSTBcjw7OEDEIHGckwUHs6prKE0kkQD4Xjm06XupuZW8/H+/oPBdHJBr+Ugv5Kzlsst/81BEyoQIDAQAB-----END PUBLIC KEY-----");
+          $('#endpoint').val("https://api.figo.me");
+        }
+        function encrypt(tan) {
+          // use jsrsasign to read the public key and convert it to jwk
+          var keyObj = KEYUTIL.getKey($('#public_key').val())
+          var jwk = KEYUTIL.getJWKFromKey(keyObj);
 
-        // init jose-js and pass the jwk to encrypt given credentials
-        var cryptographer = new Jose.WebCryptographer();
-        var rsa_key = Jose.Utils.importRsaPublicKey(jwk, "RSA-OAEP");
-        cryptographer.setContentEncryptionAlgorithm("A256CBC-HS512");
-        var encrypter = new JoseJWE.Encrypter(cryptographer, rsa_key);
-        var creds = JSON.stringify([$('#user').val(),$('#additional_pin').val(),$('#pin').val()]);
-        $('#to_be_encrypted').html(creds);
-        encrypter.encrypt(creds).then(function(result) {
-          document.getElementById("encrypted_token").innerHTML = result;
-        }).catch(function(err){
-          console.error(err);
-        });
-      }
-    </script>
-    <div>
-      Please enter credentials: <br/><br/>
-      <form>
-        <div>Username: &nbsp;<input type="text" id="user"></input></div><br/>
-        <div>PIN: &nbsp;<input type="pin" id="pin"></input></div><br />
-        <div>Additional PIN (optional): &nbsp;<input type="text" id="additional_pin"></input></div><br/>
-        <button type="button" onclick="encrypt(); return false;">convert</button>
-      </form>
-      <div>
-    <div>
-      To be encrypted:<br/><br/> <span id="to_be_encrypted"></span>
-    </div><br />
-    <div>
-      JWE:<br/><br/> <span id="encrypted_token"></span>
-    </div>
+          // init jose-js and pass the jwk to encrypt given credentials
+          var cryptographer = new Jose.WebCryptographer();
+          var rsa_key = Jose.Utils.importRsaPublicKey(jwk, "RSA-OAEP");
+          cryptographer.setContentEncryptionAlgorithm($("#content_encryption option:selected").val());
+          var encrypter = new JoseJWE.Encrypter(cryptographer, rsa_key);
+          var creds = "";
+          if (tan == false) {
+            creds = JSON.stringify([$('#user').val(),$('#additional_pin').val(),$('#pin').val()]);
+            $('#to_be_encrypted').html(creds);
+            encrypter.encrypt(creds).then(function(result) {
+              document.getElementById("encrypted_token").innerHTML = result;
+            }).catch(function(err){
+              console.error(err);
+            });
+          }
+          else {
+            creds = JSON.stringify($('#tan').val());
+            $('#tan_to_be_encrypted').html(creds);
+            encrypter.encrypt(creds).then(function(result) {
+              document.getElementById("encrypted_tan").innerHTML = result;
+            }).catch(function(err){
+              console.error(err);
+            });
+          }
+
+
+        }
+      </script>
+      <nav class="navbar navbar-inverse navbar-fixed-top">
+        <div class="navbar-header">
+          <a class="navbar-brand" href="#">JWE Example</a>
+        </div>
+        </div>
+        <div id="navbar" class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+          </ul>
+        </div>
+      </nav>
+
+      <div class="container">
+
+        <div class="jumbotron">
+          <p>
+            <h4>Please enter the following information:</h4>
+            <div class="row">
+              <div class="col-md-2">Public Key:</div>
+              <div class="col-md-8"><textarea rows="10" cols="80" id="public_key"></textarea></div>
+              <div class="col-md-2">
+                <button type="button" class="btn btn-primary" onclick="loadPresets(); return false;">load figo presets</button>
+              </div>
+            </div>
+          </p>
+          <div class="row">
+            <p>
+              <div class="col-md-2">Choose content encryption algorithm:</div>
+              <div class="col-md-3">
+                <select class="form-control" id="content_encryption">
+                  <option>A128CBC-HS256</option>
+                  <option selected="selected">A256CBC-HS512</option>
+                </select>
+              </div>
+            </p>
+          </div>
+          <hr>
+          <!--h4>If you want to test the generated JWE against a specific API, please enter the following information:</h4>
+          <p>
+            <div class="row">
+              <div class="col-md-2">Endpoint:</div>
+              <div class="col-md-10"><input type="text" size="50" id="endpoint"></input></div>
+            </div>
+          </p>
+          <p>
+            <div class="row">
+              <div class="col-md-2">Client ID:</div>
+              <div class="col-md-10"><input type="text" size="90"></input></div>
+            </div>
+            <div class="row">
+              <div class="col-md-2">Client Secret:</div>
+              <div class="col-md-10"><input type="password" size="90"></input></div>
+            </div>
+          </p -->
+        </div>
+
+        <div class="panel panel-primary">
+          <div class="panel-heading">
+            <h3 class="panel-title">Prepare bank credentials</h3>
+          </div>
+          <div class="panel-body">
+            <div class="row">
+              <div class="col-md-6">
+                <form>
+                    <div class="row">
+                      <p>
+                        <div class="col-md-4">Username:</div>
+                        <div class="col-md-6"><input type="text" size="40" id="user"></input></div>
+                      </p>
+                    </div>
+                  <div class="row">
+                    <p>
+                      <div class="col-md-4">Password:</div>
+                      <div class="col-md-6"><input type="text" size="40" id="pin"></input></div>
+                    </p>
+                  </div>
+                  <div class="row">
+                    <p>
+                      <div class="col-md-4">Additional Password:</div>
+                      <div class="col-md-6"><input type="text" size="40" id="additional_pin"></input></div>
+                    </p>
+                  </div>
+                  <p>
+                    <div class="row">
+                      <p>
+                        <div class="col-md-4"></div>
+                        <div class="col-md-6"><button type="button" class="btn btn-warning" onclick="encrypt(false); return false;">convert</button></input></div>
+                      </p>
+                    </div>
+                  </p>
+                </form>
+              </div>
+              <div class="col-md-6">
+                <div class="row">
+                  <p>
+                    <div class="col-md-2">Data to encrypt:</div>
+                    <div class="col-md-10" id="to_be_encrypted"></div>
+                  </p>
+                </div>
+                <div class="row">
+                  <p>
+                    <div class="col-md-6">Example request:</div>
+                    <div class="col-md-6"></div>
+                  </p>
+                </div>
+                <div class="row">
+                  <div class="col-md-12">
+                    <pre style="white-space: pre-line;">
+                      {
+                        "bank_code" : "90090042",
+                        "country" : "de",
+                        "credentials" : {
+                          "type" : "encrypted",
+                          "value" : "<span id="encrypted_token"  style="word-wrap:break-word;"></span>"
+                        }
+                      }
+                    </pre>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+
+        <div class="panel panel-primary">
+          <div class="panel-heading">
+            <h3 class="panel-title">Prepare challenge response (TAN)</h3>
+          </div>
+          <div class="panel-body">
+            <div class="row">
+              <div class="col-md-6">
+                <form>
+                    <div class="row">
+                      <p>
+                        <div class="col-md-4">TAN:</div>
+                        <div class="col-md-6"><input type="text" size="40" id="tan"></input></div>
+                      </p>
+                    </div>
+                  <p>
+                    <div class="row">
+                      <p>
+                        <div class="col-md-4"></div>
+                        <div class="col-md-6"><button type="button" class="btn btn-warning" onclick="encrypt(true); return false;">convert</button></input></div>
+                      </p>
+                    </div>
+                  </p>
+                </form>
+              </div>
+              <div class="col-md-6">
+                <div class="row">
+                  <p>
+                    <div class="col-md-2">Data to encrypt:</div>
+                    <div class="col-md-10" id="tan_to_be_encrypted"></div>
+                  </p>
+                </div>
+                <div class="row">
+                  <p>
+                    <div class="col-md-6">Example request:</div>
+                    <div class="col-md-6"></div>
+                  </p>
+                </div>
+                <div class="row">
+                  <div class="col-md-12">
+                    <pre style="white-space: pre-line;">
+                      {
+                        "response" : {
+                          "type" : "encrypted",
+                          "value" : "<span id="encrypted_tan"  style="word-wrap:break-word;"></span>"
+                        }
+                      }
+                    </pre>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+    <script src="lib/bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
   </body>
 </html>
