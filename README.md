@@ -6,7 +6,7 @@ This example demonstrates how to encrypt user credentials using figo's public ke
 ## Why?
 
 figo's API allows to send encrypted user credentials using JWE ([click here for more infos on JWE](https://tools.ietf.org/html/rfc7516)).
-Unfortunately the Webcrypto support is limited in some browsers(Safari, Internet Explorer).
+Unfortunately the Webcrypto support is limited in some browsers (Safari, Internet Explorer).
 
 
 ## Libraries used
